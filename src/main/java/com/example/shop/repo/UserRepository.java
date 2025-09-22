@@ -1,4 +1,3 @@
-
 package com.example.shop.repo;
 
 import com.example.shop.model.User;

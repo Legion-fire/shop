@@ -1,4 +1,3 @@
-// file: src/main/java/com/example/shop/controller/OrderController.java
 package com.example.shop.controller;
 
 import com.example.shop.model.Order;
