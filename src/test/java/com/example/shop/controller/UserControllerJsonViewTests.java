@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -21,12 +22,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 class UserControllerJsonViewTests {
 
     @Autowired MockMvc mockMvc;
     @Autowired UserRepository userRepository;
     @Autowired OrderRepository orderRepository;
+    @Autowired
+    PasswordEncoder encoder;
 
     Long userId;
 
@@ -39,6 +42,8 @@ class UserControllerJsonViewTests {
         u.setName("Alice");
         u.setEmail("alice1994@gmail.com");
         u.setAddress("Moscow Red Street 1");
+        u.setPassword(encoder.encode("test123"));
+        u.setUsername("alice-killer");
         u = userRepository.save(u);
         userId = u.getId();
 

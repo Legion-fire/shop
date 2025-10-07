@@ -6,13 +6,24 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
-public class User {
+@Builder
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,4 +42,50 @@ public class User {
     @JsonView({UserSummary.class})
     private String address;
 
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Set<Role> roles = new HashSet<>();
+
+    @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
+                .collect(Collectors.toUnmodifiableSet());
+    }
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    private boolean accountNonLocked = true;
+    private int failedAttempt = 0;
+    private Instant lockTime;
+
+    private static final Duration LOCK_DURATION = Duration.ofMinutes(15);
+
+
+    @Override
+    public boolean isAccountNonLocked() {
+        if (accountNonLocked) return true;
+        if (lockTime != null && Instant.now().isAfter(lockTime.plus(LOCK_DURATION))) {
+            accountNonLocked = true;
+            failedAttempt = 0;
+            lockTime = null;
+        }
+        return accountNonLocked;
+    }
 }
