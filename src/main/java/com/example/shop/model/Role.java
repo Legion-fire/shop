@@ -1,5 +1,5 @@
 package com.example.shop.model;
 
-enum Role {
+public enum Role {
     USER, MODERATOR, SUPER_ADMIN
  }

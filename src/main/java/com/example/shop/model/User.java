@@ -71,21 +71,32 @@ public class User implements UserDetails {
         return username;
     }
 
+    @Column(name = "account_non_locked", nullable = false)
     private boolean accountNonLocked = true;
-    private int failedAttempt = 0;
+
+    @Column(name = "failed_attempt", nullable = false)
+    private int failedAttempt;
+
+    @Column(name = "lock_time")
     private Instant lockTime;
 
-    private static final Duration LOCK_DURATION = Duration.ofMinutes(15);
+     public static final Duration LOCK_DURATION = Duration.ofMinutes(15);
 
 
     @Override
     public boolean isAccountNonLocked() {
-        if (accountNonLocked) return true;
-        if (lockTime != null && Instant.now().isAfter(lockTime.plus(LOCK_DURATION))) {
+        return accountNonLocked;
+    }
+
+    public boolean unlockIfExpired(Duration lockDuration) {
+        if (!accountNonLocked && lockTime != null
+                && Instant.now().isAfter(lockTime.plus(lockDuration))) {
             accountNonLocked = true;
             failedAttempt = 0;
             lockTime = null;
+            return true;
         }
-        return accountNonLocked;
+        return false;
     }
+
 }
